@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import controller.IModelListener;
 import discs.DiscType;
 import player.PlayerTurn;
 import discs.Disc;
@@ -27,6 +28,7 @@ public class ReversiHexModel extends BoardUtils implements ReversiModel {
   protected int numColumns;
   protected StringBuilder playerAction;
   protected GameState state;
+  protected List<IModelListener> modelStatuses = new ArrayList<>();
 
   /**
    * Constructor for a Reversi hexagonal model.
@@ -67,6 +69,20 @@ public class ReversiHexModel extends BoardUtils implements ReversiModel {
     this.playerColorMap = new HashMap<>();
     playerColorMap.put(PlayerTurn.PLAYER1, DiscColor.BLACK);
     playerColorMap.put(PlayerTurn.PLAYER2, DiscColor.WHITE);
+  }
+
+  public void subscribe(IModelListener ml) {
+    this.modelStatuses.add(ml);
+  }
+
+  public void unSubscribe(IModelListener ml) {
+    this.modelStatuses.remove(ml);
+  }
+
+  public void notifySubscribers(StatusCodes sc, String message) {
+    for (IModelListener iml: this.modelStatuses) {
+      iml.update(sc,message);
+    }
   }
 
   private void placeGameDiscs(int spacesMaxLeft, int spacesMaxRight, int i) {
@@ -229,6 +245,7 @@ public class ReversiHexModel extends BoardUtils implements ReversiModel {
     this.gameOn = true;
     this.gameBoard = new Disc[numRows][numColumns];
     initBoard();
+    notifySubscribers(StatusCodes.INPROGRESS, "game started successfully");
   }
 
   @Override
@@ -259,17 +276,21 @@ public class ReversiHexModel extends BoardUtils implements ReversiModel {
     originalCoordinate.add(x);
     originalCoordinate.add(y);
     if (!this.checkValidCoordinates(x, y)) {
-      throw new IllegalArgumentException("Invalid coordinates provided by the user.");
+      notifySubscribers(StatusCodes.ILLEGALMOVE, "Coordinates " + x + " " + y + " are outside the grid");
+      return;
+
+      //throw new IllegalArgumentException("Invalid coordinates provided by the user.");
     }
     if (this.getDiscAt(x, y).getColor() != DiscColor.FACEDOWN) {
-      throw new IllegalStateException("Invalid Move: Disc is not facedown.");
+      notifySubscribers(StatusCodes.ILLEGALMOVE, "Coordinates " + x + " " + y + " are facedown");
     }
 
     List<List<List<Integer>>> moves = BoardUtils.bfs(this,x,y);
     boolean allEmptyLists = moves.stream().allMatch(List::isEmpty);
 
     if (allEmptyLists) {
-      throw new IllegalStateException("Invalid move: No valid moves found.");
+      notifySubscribers(StatusCodes.ILLEGALMOVE, "Coordinates " + x + " " + y + " are valid" +
+              " with no moves");
     }
     // class invariant: only the current player can alter the board (make a move)
     // the class invariant is enforced here because we are only applying a color filter
@@ -282,6 +303,9 @@ public class ReversiHexModel extends BoardUtils implements ReversiModel {
         this.playerAction.append(System.lineSeparator()); // Add a newline after each inner list
       });
     }
+
+    notifySubscribers(StatusCodes.LEGALMOVEMADE, "Move Executed at Coordinate " + x + " " + y);
+    // may have to break here
     // class invariant: only the current player can alter the board (make a move)
     // the class invariant is enforced here because when we execute a valid move
     // we can now switch to the opposite color.

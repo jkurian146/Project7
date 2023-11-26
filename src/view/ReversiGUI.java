@@ -273,13 +273,10 @@ public class ReversiGUI extends JFrame implements ReversiView {
    * A main method that can be used as an entry point for a user.
    */
   public static void main(String[] args) {
-    ReversiHexModelAI model = new ReversiHexModelAI(StrategyType.MINIMAX);
-    //ReversiHexModel model = new ReversiHexModel();
-    model.startGame(7);
-    model.makeMove(2,2);
-    model.makeMove(1,1);
-    model.makeMove(5,4);
-    ReversiGUI gui = new ReversiGUI(model);
-    gui.render();
+
+    switch (args[0].toLowerCase()) {
+      case "human":
+
+    }
   }
 }
