@@ -7,8 +7,8 @@ public class PlayerListener implements IPlayerListener {
   private int y;
 
   public PlayerListener() {
-    this.x = 2;
-    this.y = 2;
+    this.x = - 1;
+    this.y = - 1;
   }
 
   @Override

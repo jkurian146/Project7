@@ -1,5 +1,8 @@
 package controller;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.swing.*;
 
 import model.ReversiModel;
@@ -13,6 +16,7 @@ public class ReversiController implements IReversiController{
   private final ReversiView view;
   private final IModelListener modelListener;
   private final IPlayerListener playerListener;
+  private List<IReversiController> observers;
 
   public ReversiController(Player player, ReversiModel model, ReversiView view) {
     this.player = player;
@@ -20,7 +24,7 @@ public class ReversiController implements IReversiController{
     this.view = view;
     this.modelListener = new ModelListener();
     this.playerListener = new PlayerListener();
-    this.go();
+    this.observers = new ArrayList<>();
   }
 
   public void go() {
@@ -28,28 +32,43 @@ public class ReversiController implements IReversiController{
     this.model.subscribe(this.modelListener);
     this.modelListener.getLastStatusCode();
 
-
-    while(true) {
+    while(!model.isGameOver()) { // Check if the game is over
       int x = this.playerListener.getX();
       int y = this.playerListener.getY();
 
       if((x >= 0 || y >= 0)) {
         if(this.model.currentTurn() == this.player.getPlayerTurn()) {
           this.model.makeMove(x, y);
+          System.out.println(x);
+          System.out.println(y);
           this.view.render();
+          this.notifyListener(this);
         } else {
-
         }
       }
     }
-
-//    String last = this.listener.getLastMessage();
-
   }
 
-  public void syncViews(ReversiController controller) {
-    controller.model = this.model;
-    controller.view.render();
+
+  @Override
+  public void addListener(IReversiController controller) {
+    this.observers.add(controller);
   }
 
+  @Override
+  public void removeListener(IReversiController controller) {
+    this.observers.remove(controller);
+  }
+
+  @Override
+  public void notifyListener(IReversiController controller) {
+    for(IReversiController c : this.observers) {
+      c.displayView(controller);
+    }
+  }
+
+  @Override
+  public void displayView(IReversiController controller) {
+    this.view.render();
+  }
 }
