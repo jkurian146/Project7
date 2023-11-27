@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import discs.DiscColor;
+import model.ReversiModel;
 import strategy.IStrategy;
 
 /**
@@ -14,11 +15,13 @@ public class Player {
   private final PlayerTurn playerTurn;
   private IStrategy iStrategy;
   private final Map<PlayerTurn, DiscColor> playerColorMap;
+  private final ReversiModel model;
 
   /**
    * A 'Player' represents a player instantiation without a strategy (non-ai).
    */
-  public Player(PlayerTurn playerTurn) {
+  public Player(PlayerTurn playerTurn, ReversiModel model) {
+    this.model = model;
     this.playerTurn = playerTurn;
     this.playerColorMap = setUpColorMap();
 
@@ -27,7 +30,8 @@ public class Player {
   /**
    * A 'Player' represents a player instantiation with a strategy (ai).
    */
-  public Player(PlayerTurn playerTurn, IStrategy iStrategy) {
+  public Player(PlayerTurn playerTurn, IStrategy iStrategy, ReversiModel model) {
+    this.model = model;
     this.playerTurn = playerTurn;
     this.iStrategy = iStrategy;
     this.playerColorMap = setUpColorMap();

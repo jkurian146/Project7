@@ -1,5 +1,7 @@
 package model;
 
+import controller.IModelListener;
+
 /**
  * Represents a ReversiModel.
  */
@@ -43,4 +45,9 @@ public interface ReversiModel extends ReadOnlyReversiModel {
    */
   void pass();
 
+  void subscribe(IModelListener ml);
+
+  void unSubscribe(IModelListener ml);
+
+  void notifySubscribers(StatusCodes sc, String message);
 }

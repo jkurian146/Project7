@@ -13,4 +13,12 @@ public class ModelListener implements IModelListener {
     this.currStatusCodes = sc;
     this.currMessage = message;
   }
+
+  public StatusCodes getLastStatusCode() {
+   return  this.currStatusCodes;
+  }
+
+  public String getLastMessage() {
+    return this.currMessage;
+  }
 }

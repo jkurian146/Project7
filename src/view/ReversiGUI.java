@@ -1,9 +1,7 @@
 package view;
 
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JFrame;
+import javax.swing.*;
+
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -14,10 +12,23 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import controller.IModelListener;
+import controller.IPlayerListener;
+import controller.PlayerListener;
+import controller.ReversiController;
 import discs.Disc;
 import discs.DiscColor;
 import model.ReadOnlyReversiModel;
+import model.ReversiHexModel;
 import model.ReversiHexModelAI;
+import model.ReversiModel;
+import model.StatusCodes;
+import player.Player;
+import player.PlayerTurn;
 import strategy.StrategyType;
 
 /**
@@ -29,12 +40,15 @@ public class ReversiGUI extends JFrame implements ReversiView {
   private final JButton[][] boardButtons;
   private int prevX = -1;
   private int prevY = -1;
+  private List<IPlayerListener> listeners;
 
   /**
    * A ReversiGUI constructor.
    */
   public ReversiGUI(ReadOnlyReversiModel model) {
     this.model = model;
+
+    this.listeners = new ArrayList<>();
 
     getContentPane().setBackground(Color.DARK_GRAY);
     setTitle(model.getType() + " Reversi");
@@ -147,21 +161,23 @@ public class ReversiGUI extends JFrame implements ReversiView {
           public void keyPressed(KeyEvent e) {
             if (e.getKeyCode() == KeyEvent.VK_SPACE) {
               System.out.println("Spacebar pressed, player wishes to pass");
-              if (!(prevX == - 1 && prevY == - 1)) {
+              if (!(prevX == -1 && prevY == -1)) {
                 discSelectorHelper(boardButtons[prevY][prevX], prevX, prevY);
-                prevX = - 1;
-                prevY = - 1;
+                prevX = -1;
+                prevY = -1;
               }
             }
 
             if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-              if (!(prevX == - 1 && prevY == - 1)) {
+              if (!(prevX == -1 && prevY == -1)) {
                 System.out.println("Enter key pressed, player wishes to make a move to the disc at"
                         + " (" + prevX + ", " + prevY + ")");
 
+                notifyListener(prevX, prevY);
+
                 discSelectorHelper(boardButtons[prevY][prevX], prevX, prevY);
-                prevX = - 1;
-                prevY = - 1;
+                prevX = -1;
+                prevY = -1;
               } else {
                 System.out.println("No selected disc to move to");
               }
@@ -269,14 +285,31 @@ public class ReversiGUI extends JFrame implements ReversiView {
     return new ImageIcon(hexImage);
   }
 
+  public void addListener(IPlayerListener listener) {
+    this.listeners.add(listener);
+  }
+
+  public void notifyListener(int x, int y) {
+    for (IPlayerListener iml: this.listeners) {
+      iml.update(x, y);
+    }
+  }
+
+  public void removeListener(IPlayerListener listener) {
+    this.listeners.remove(listener);
+  }
+
   /**
    * A main method that can be used as an entry point for a user.
    */
   public static void main(String[] args) {
-
-    switch (args[0].toLowerCase()) {
-      case "human":
-
-    }
+    ReversiModel model = new ReversiHexModel();
+    model.startGame(7);
+    ReversiGUI viewPlayer1 = new ReversiGUI(model);
+    ReversiGUI viewPlayer2 = new ReversiGUI(model);
+    Player player1 = new Player(PlayerTurn.PLAYER1, model);
+    Player player2 = new Player(PlayerTurn.PLAYER2, model);
+    ReversiController controller1 = new ReversiController(player1, model, viewPlayer1);
+    ReversiController controller2 = new ReversiController(player2, model, viewPlayer2);
   }
 }

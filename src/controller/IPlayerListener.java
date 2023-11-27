@@ -1,5 +1,11 @@
 package controller;
 
-public interface IPlayerListener {
+import model.StatusCodes;
 
+public interface IPlayerListener {
+  void update(int x, int y);
+
+ int getX();
+
+  int getY();
 }

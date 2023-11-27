@@ -2,9 +2,12 @@ package view;
 
 import java.io.IOException;
 import java.util.List;
+
+import controller.IPlayerListener;
 import discs.Disc;
 import discs.DiscColor;
 import model.ReadOnlyReversiModel;
+import model.StatusCodes;
 
 /**
  * Represents a text view for a Reversi game.
@@ -101,4 +104,20 @@ public class ReversiTextualView implements ReversiView {
   public void render() {
     System.out.println(this);
   }
+
+  @Override
+  public void removeListener(IPlayerListener listener) {
+
+  }
+
+  @Override
+  public void notifyListener(int x, int y) {
+
+  }
+
+  @Override
+  public void addListener(IPlayerListener listener) {
+
+  }
+
 }

@@ -228,7 +228,6 @@ public class ReversiHexModel extends BoardUtils implements ReversiModel {
     this.setPiece(middle - 1, middle, DiscColor.WHITE);
   }
 
-
   private void checkStartGameConditions(int boardSize) {
     if (this.gameOn) {
       throw new IllegalStateException("Game has already started");
@@ -250,16 +249,16 @@ public class ReversiHexModel extends BoardUtils implements ReversiModel {
 
   @Override
   public int getDimensions() {
-    this.gameNotYetStarted();
+//    this.gameNotYetStarted();
     return this.numRows;
   }
 
   // checks if the game has been started.
-  private void gameNotYetStarted() {
-    if (!this.gameOn) {
-      throw new IllegalStateException("The game hasn't started.");
-    }
-  }
+//  private void gameNotYetStarted() {
+//    if (!this.gameOn) {
+//      throw new IllegalStateException("The game hasn't started.");
+//    }
+//  }
 
   @Override
   public boolean checkValidCoordinates(int x, int y) {
@@ -271,7 +270,7 @@ public class ReversiHexModel extends BoardUtils implements ReversiModel {
 
   @Override
   public void makeMove(int x, int y) {
-    this.gameNotYetStarted();
+//    this.gameNotYetStarted();
     List<Integer> originalCoordinate = new ArrayList<>();
     originalCoordinate.add(x);
     originalCoordinate.add(y);
@@ -283,6 +282,7 @@ public class ReversiHexModel extends BoardUtils implements ReversiModel {
     }
     if (this.getDiscAt(x, y).getColor() != DiscColor.FACEDOWN) {
       notifySubscribers(StatusCodes.ILLEGALMOVE, "Coordinates " + x + " " + y + " are facedown");
+      return;
     }
 
     List<List<List<Integer>>> moves = BoardUtils.bfs(this,x,y);
@@ -291,6 +291,7 @@ public class ReversiHexModel extends BoardUtils implements ReversiModel {
     if (allEmptyLists) {
       notifySubscribers(StatusCodes.ILLEGALMOVE, "Coordinates " + x + " " + y + " are valid" +
               " with no moves");
+      return;
     }
     // class invariant: only the current player can alter the board (make a move)
     // the class invariant is enforced here because we are only applying a color filter
@@ -303,13 +304,18 @@ public class ReversiHexModel extends BoardUtils implements ReversiModel {
         this.playerAction.append(System.lineSeparator()); // Add a newline after each inner list
       });
     }
-
     notifySubscribers(StatusCodes.LEGALMOVEMADE, "Move Executed at Coordinate " + x + " " + y);
     // may have to break here
     // class invariant: only the current player can alter the board (make a move)
     // the class invariant is enforced here because when we execute a valid move
     // we can now switch to the opposite color.
     this.togglePlayer();
+
+    if(currentTurn() == PlayerTurn.PLAYER1) {
+      notifySubscribers(StatusCodes.PLAYER1TURN, "It is your turn.");
+    } else {
+      notifySubscribers(StatusCodes.PLAYER2TURN, "It is your turn.");
+    }
   }
 
   // a method that applies the current players color to newly captured cells.
@@ -332,13 +338,13 @@ public class ReversiHexModel extends BoardUtils implements ReversiModel {
   // returns the current gameState
   @Override
   public GameState getCurrentGameState() {
-    this.gameNotYetStarted();
+//    this.gameNotYetStarted();
     return this.state;
   }
 
   @Override
   public Disc[][] getCurrentBoardState() {
-    this.gameNotYetStarted();
+    //    this.gameNotYetStarted();
 
     int rows = this.gameBoard.length;
     Disc[][] copy = new Disc[rows][];
@@ -365,7 +371,7 @@ public class ReversiHexModel extends BoardUtils implements ReversiModel {
 
   @Override
   public Boolean isGameOver() {
-    this.gameNotYetStarted();
+//    this.gameNotYetStarted();
     boolean noMoves = this.noMoreLegalMoves();
     boolean twoPassesInARow = this.consecutivePasses(2);
     boolean currentPlayerLost = this.getScore(this.pt) == 0;
@@ -373,18 +379,35 @@ public class ReversiHexModel extends BoardUtils implements ReversiModel {
 
     if (twoPassesInARow) {
       this.state = GameState.STALEMATE;
+      notifySubscribers(StatusCodes.STALEMATE, "Players passed consecutively, " +
+              "game ends in a tie.");
       return true;
     }
     if (currentPlayerLost) {
-      this.state = (this.pt == PlayerTurn.PLAYER1) ? GameState.PLAYER2WIN : GameState.PLAYER1WIN;
+      if(this.pt == PlayerTurn.PLAYER1){
+        this.state = GameState.PLAYER2WIN;
+        notifySubscribers(StatusCodes.PLAYER2WON, "White wins!");
+
+      } else {
+        this.state = GameState.PLAYER1WIN;
+        notifySubscribers(StatusCodes.PLAYER1WON, "Black wins!");
+      }
       return true;
     }
     if (oppositePlayerLost) {
-      this.state = (this.pt == PlayerTurn.PLAYER1) ? GameState.PLAYER1WIN : GameState.PLAYER2WIN;
+      if(this.pt == PlayerTurn.PLAYER1){
+        this.state = GameState.PLAYER1WIN;
+        notifySubscribers(StatusCodes.PLAYER1WON, "Black wins!");
+
+      } else {
+        this.state = GameState.PLAYER2WIN;
+        notifySubscribers(StatusCodes.PLAYER2WON, "White wins!");
+      }
       return true;
     }
     if (noMoves) {
       this.state = GameState.STALEMATE;
+      notifySubscribers(StatusCodes.STALEMATE, "No more legal moves.");
       return true;
     }
     return false;
@@ -412,7 +435,7 @@ public class ReversiHexModel extends BoardUtils implements ReversiModel {
 
   @Override
   public PlayerTurn currentTurn() {
-    this.gameNotYetStarted();
+//    this.gameNotYetStarted();
     return this.pt;
   }
 
@@ -434,7 +457,7 @@ public class ReversiHexModel extends BoardUtils implements ReversiModel {
   // gets a player score.
   @Override
   public int getScore(PlayerTurn player) {
-    this.gameNotYetStarted();
+//    this.gameNotYetStarted();
     int countDiscsForThisPlayer = 0;
     for (Disc[] row : this.gameBoard) {
       for (Disc disc : row) {
@@ -463,7 +486,7 @@ public class ReversiHexModel extends BoardUtils implements ReversiModel {
 
   @Override
   public Disc getDiscAt(int x, int y) {
-    this.gameNotYetStarted();
+//    this.gameNotYetStarted();
     if (!this.checkValidCoordinates(x, y)) {
       throw new IllegalArgumentException("getDiscAt: POSN provided by user is invalid");
     }
@@ -472,7 +495,7 @@ public class ReversiHexModel extends BoardUtils implements ReversiModel {
 
   @Override
   public boolean isDiscFlipped(int x, int y) {
-    this.gameNotYetStarted();
+//    this.gameNotYetStarted();
     if (!this.checkValidCoordinates(x, y)) {
       throw new IllegalArgumentException("isDiscFlipped: POSN provided by user is invalid");
     }
@@ -481,7 +504,7 @@ public class ReversiHexModel extends BoardUtils implements ReversiModel {
 
   @Override
   public void pass() {
-    this.gameNotYetStarted();
+//    this.gameNotYetStarted();
     // class invariant: only the current player can alter the board (make a move)
     // the class invariant is enforced here because when the user wants to pass
     // we are also toggling the player.
@@ -501,7 +524,7 @@ public class ReversiHexModel extends BoardUtils implements ReversiModel {
 
   // toggles a player after a move has been made or pass has been attempted
   private void togglePlayer() {
-    this.gameNotYetStarted();
+//    this.gameNotYetStarted();
     if (this.pt == PlayerTurn.PLAYER1) {
       this.pt = PlayerTurn.PLAYER2;
     } else {
