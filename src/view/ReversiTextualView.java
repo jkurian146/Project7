@@ -120,4 +120,9 @@ public class ReversiTextualView implements ReversiView {
 
   }
 
+  @Override
+  public void showPopupMessage(String message) {
+
+  }
+
 }

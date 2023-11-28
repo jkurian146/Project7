@@ -3,10 +3,7 @@ package controller;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.*;
-
 import model.ReversiModel;
-import model.StatusCodes;
 import player.Player;
 import view.ReversiView;
 
@@ -28,27 +25,33 @@ public class ReversiController implements IReversiController{
   }
 
   public void go() {
+
+    if (this.player.getPlayerTurn() == this.model.currentTurn()) {
+      this.view.showPopupMessage("It is your turn, " +
+              "click on a disc and then hit enter to make a move, " +
+              "or pass your turn by hitting the space bar");
+    }
+
     this.view.addListener(this.playerListener);
     this.model.subscribe(this.modelListener);
     this.modelListener.getLastStatusCode();
 
-    while(!model.isGameOver()) { // Check if the game is over
+    while(!model.isGameOver()) {
       int x = this.playerListener.getX();
       int y = this.playerListener.getY();
 
-      if((x >= 0 || y >= 0)) {
+       if(x >= 0 || y >= 0) {
         if(this.model.currentTurn() == this.player.getPlayerTurn()) {
           this.model.makeMove(x, y);
-          System.out.println(x);
-          System.out.println(y);
+
           this.view.render();
           this.notifyListener(this);
         } else {
+
         }
       }
     }
   }
-
 
   @Override
   public void addListener(IReversiController controller) {
@@ -63,12 +66,12 @@ public class ReversiController implements IReversiController{
   @Override
   public void notifyListener(IReversiController controller) {
     for(IReversiController c : this.observers) {
-      c.displayView(controller);
+      c.updateView(controller);
     }
   }
 
   @Override
-  public void displayView(IReversiController controller) {
+  public void updateView(IReversiController controller) {
     this.view.render();
   }
 }

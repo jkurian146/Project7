@@ -13,23 +13,18 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
-import controller.IModelListener;
 import controller.IPlayerListener;
-import controller.PlayerListener;
 import controller.ReversiController;
 import discs.Disc;
 import discs.DiscColor;
 import model.ReadOnlyReversiModel;
 import model.ReversiHexModel;
-import model.ReversiHexModelAI;
 import model.ReversiModel;
 import model.StatusCodes;
 import player.Player;
 import player.PlayerTurn;
-import strategy.StrategyType;
 
 /**
  * The `ReversiGUI` class represents the view component in a Reversi game.
@@ -161,6 +156,7 @@ public class ReversiGUI extends JFrame implements ReversiView {
           public void keyPressed(KeyEvent e) {
             if (e.getKeyCode() == KeyEvent.VK_SPACE) {
               System.out.println("Spacebar pressed, player wishes to pass");
+
               if (!(prevX == -1 && prevY == -1)) {
                 discSelectorHelper(boardButtons[prevY][prevX], prevX, prevY);
                 prevX = -1;
@@ -299,21 +295,34 @@ public class ReversiGUI extends JFrame implements ReversiView {
     this.listeners.remove(listener);
   }
 
+  public void showPopupMessage(String message) {
+    JOptionPane.showMessageDialog(null, message);
+  }
+
   /**
    * A main method that can be used as an entry point for a user.
    */
   public static void main(String[] args) {
     ReversiModel model = new ReversiHexModel();
-    model.startGame(7);
+    model.startGame(9);
+
     ReversiGUI viewPlayer1 = new ReversiGUI(model);
     ReversiGUI viewPlayer2 = new ReversiGUI(model);
+
     Player player1 = new Player(PlayerTurn.PLAYER1, model);
     Player player2 = new Player(PlayerTurn.PLAYER2, model);
+
     ReversiController controller1 = new ReversiController(player1, model, viewPlayer1);
     ReversiController controller2 = new ReversiController(player2, model, viewPlayer2);
+
     controller1.addListener(controller2);
     controller2.addListener(controller1);
-    controller1.go();
-    controller2.go();
+
+    Thread controller1Thread = new Thread(controller1::go);
+    Thread controller2Thread = new Thread(controller2::go);
+
+    controller1Thread.start();
+    controller2Thread.start();
   }
+
 }

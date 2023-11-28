@@ -6,6 +6,6 @@ public interface IReversiController {
   void addListener(IReversiController c);
   void removeListener(IReversiController c);
   void notifyListener(IReversiController c);
-  void displayView(IReversiController c);
+  void updateView(IReversiController c);
 
 }

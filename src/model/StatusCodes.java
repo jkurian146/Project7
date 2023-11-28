@@ -9,5 +9,6 @@ public enum StatusCodes {
   PLAYER2WON,
   STALEMATE,
   PLAYER1TURN,
-  PLAYER2TURN
+  PLAYER2TURN,
+  PASSED
 }

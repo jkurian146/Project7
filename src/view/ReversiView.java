@@ -20,4 +20,6 @@ public interface ReversiView {
   void notifyListener(int x, int y);
 
   void addListener(IPlayerListener listener);
+
+  void showPopupMessage(String message);
 }
