@@ -1,29 +1,25 @@
 package controller;
 
-import model.StatusCodes;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
-public class PlayerListener implements IPlayerListener {
-  private int x;
-  private int y;
+public class PlayerListener {
+    private List<PlayerEvent> playereventlog = new ArrayList();
+    public void update(PlayerEvent playerEvent) {
+        this.playereventlog.add(playerEvent);
+    }
 
-  public PlayerListener() {
-    this.x = - 1;
-    this.y = - 1;
-  }
+    public PlayerEvent getMostRecentEvent() {
+        try {
+            PlayerEvent mostRecentEvent = playereventlog.get(playereventlog.size() - 1);
+            return mostRecentEvent;
+        } catch (Exception e) {
+            return null;
+        }
+    }
 
-  @Override
-  public void update(int x, int y) {
-    this.x = x;
-    this.y = y;
-  }
-
-  @Override
-  public int getX() {
-    return this.x;
-  }
-
-  @Override
-  public int getY() {
-    return this.y;
-  }
+    public void resetPlayerActions() {
+        this.playereventlog.clear();
+    }
 }

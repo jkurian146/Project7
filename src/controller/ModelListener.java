@@ -1,24 +1,18 @@
 package controller;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
-import model.StatusCodes;
+public class ModelListener {
+    private List<ModelEvent> modeleventlog =
+            new ArrayList(Arrays.asList(new ModelEvent(ModelEventType.PLAYER1TURN, "It's Your Turn Player 1")));
+    public void update(ModelEvent modelEvent) {
+        this.modeleventlog.add(modelEvent);
+    }
 
-public class ModelListener implements IModelListener {
-  private StatusCodes currStatusCodes = StatusCodes.PRESTART;
-  private String currMessage = "";
-
-  @Override
-  public void update(StatusCodes sc, String message) {
-    this.currStatusCodes = sc;
-    this.currMessage = message;
-  }
-
-  public StatusCodes getLastStatusCode() {
-   return  this.currStatusCodes;
-  }
-
-  public String getLastMessage() {
-    return this.currMessage;
-  }
+    public ModelEvent getMostRecentEvent() {
+        ModelEvent mostRecentEvent = modeleventlog.get(modeleventlog.size() - 1);
+        return mostRecentEvent;
+    }
 }

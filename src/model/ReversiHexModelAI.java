@@ -31,7 +31,7 @@ public class ReversiHexModelAI extends ReversiHexModel implements ReversiModel {
   public ReversiHexModelAI(StrategyType strategyType) {
     super();
     this.strategyType = strategyType;
-    this.player1 = new Player(PlayerTurn.PLAYER1, this);
+    this.player1 = new Player(PlayerTurn.PLAYER1);
     this.gameStates = new ArrayList<>();
     this.allMoves = new ArrayList<>();
     this.firstRun = true;
@@ -71,15 +71,15 @@ public class ReversiHexModelAI extends ReversiHexModel implements ReversiModel {
   private Player createAI() {
     switch (this.strategyType) {
       case MINIMAX:
-        return new Player(PlayerTurn.PLAYER2, new MiniMaxStrategy(this,PlayerTurn.PLAYER2), this);
+        return new Player(PlayerTurn.PLAYER2, new MiniMaxStrategy(this,PlayerTurn.PLAYER2));
       case MAXIMIZE:
-        return new Player(PlayerTurn.PLAYER2, new MaximizeCaptureStrategy(this,PlayerTurn.PLAYER2), this);
+        return new Player(PlayerTurn.PLAYER2, new MaximizeCaptureStrategy(this,PlayerTurn.PLAYER2));
       case AVOIDCORNER:
         return new Player(PlayerTurn.PLAYER2, new CornersStrategy(this,
-                PlayerTurn.PLAYER2,true), this);
+                PlayerTurn.PLAYER2,true));
       case GOFORCORNER:
         return new Player(PlayerTurn.PLAYER2, new CornersStrategy(this,
-                PlayerTurn.PLAYER2,false), this);
+                PlayerTurn.PLAYER2,false));
       default:
         throw new IllegalStateException("Can't Create an AI without a strategy");
     }

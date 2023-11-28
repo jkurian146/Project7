@@ -1,7 +1,6 @@
 package view;
 
 import javax.swing.*;
-
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -15,16 +14,15 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
-import controller.IPlayerListener;
-import controller.ReversiController;
+import controller.*;
 import discs.Disc;
 import discs.DiscColor;
 import model.ReadOnlyReversiModel;
 import model.ReversiHexModel;
-import model.ReversiModel;
-import model.StatusCodes;
+import model.ReversiHexModelAI;
 import player.Player;
 import player.PlayerTurn;
+import strategy.StrategyType;
 
 /**
  * The `ReversiGUI` class represents the view component in a Reversi game.
@@ -35,15 +33,14 @@ public class ReversiGUI extends JFrame implements ReversiView {
   private final JButton[][] boardButtons;
   private int prevX = -1;
   private int prevY = -1;
-  private List<IPlayerListener> listeners;
+
+  private List<PlayerListener> playerListeners = new ArrayList<>();
 
   /**
    * A ReversiGUI constructor.
    */
   public ReversiGUI(ReadOnlyReversiModel model) {
     this.model = model;
-
-    this.listeners = new ArrayList<>();
 
     getContentPane().setBackground(Color.DARK_GRAY);
     setTitle(model.getType() + " Reversi");
@@ -76,6 +73,7 @@ public class ReversiGUI extends JFrame implements ReversiView {
         int actualI = i;
         int actualJ = j;
         boardButtons[i][j].addMouseListener(new MouseListener() {
+
 
           @Override
           public void mousePressed(MouseEvent e) {
@@ -156,24 +154,23 @@ public class ReversiGUI extends JFrame implements ReversiView {
           public void keyPressed(KeyEvent e) {
             if (e.getKeyCode() == KeyEvent.VK_SPACE) {
               System.out.println("Spacebar pressed, player wishes to pass");
-
-              if (!(prevX == -1 && prevY == -1)) {
+              if (!(prevX == - 1 && prevY == - 1)) {
                 discSelectorHelper(boardButtons[prevY][prevX], prevX, prevY);
-                prevX = -1;
-                prevY = -1;
+                notifyListeners(new PlayerEvent(PlayerEventType.PASS, "", model.currentTurn()));
+                prevX = - 1;
+                prevY = - 1;
               }
             }
 
             if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-              if (!(prevX == -1 && prevY == -1)) {
+              if (!(prevX == - 1 && prevY == - 1)) {
                 System.out.println("Enter key pressed, player wishes to make a move to the disc at"
                         + " (" + prevX + ", " + prevY + ")");
 
-                notifyListener(prevX, prevY);
-
                 discSelectorHelper(boardButtons[prevY][prevX], prevX, prevY);
-                prevX = -1;
-                prevY = -1;
+                notifyListeners(new PlayerEvent(PlayerEventType.MOVE, prevX + " " + prevY, model.currentTurn()));
+                prevX = - 1;
+                prevY = - 1;
               } else {
                 System.out.println("No selected disc to move to");
               }
@@ -215,6 +212,15 @@ public class ReversiGUI extends JFrame implements ReversiView {
     }
   }
 
+  public void addListener(PlayerListener pl) {
+    playerListeners.add(pl);
+  }
+
+  public void notifyListeners(PlayerEvent playerEvent) {
+    for (PlayerListener pl: playerListeners) {
+      pl.update(playerEvent);
+    }
+  }
   /**
    * The Render Method is needed for displaying the view.
    */
@@ -241,6 +247,11 @@ public class ReversiGUI extends JFrame implements ReversiView {
         }
       }
     }
+  }
+
+  @Override
+  public void showPopup(String message) {
+    JOptionPane.showMessageDialog(this,message);
   }
 
   private BufferedImage convertIconToBufferedImage(ImageIcon icon) {
@@ -281,48 +292,19 @@ public class ReversiGUI extends JFrame implements ReversiView {
     return new ImageIcon(hexImage);
   }
 
-  public void addListener(IPlayerListener listener) {
-    this.listeners.add(listener);
-  }
-
-  public void notifyListener(int x, int y) {
-    for (IPlayerListener iml: this.listeners) {
-      iml.update(x, y);
-    }
-  }
-
-  public void removeListener(IPlayerListener listener) {
-    this.listeners.remove(listener);
-  }
-
-  public void showPopupMessage(String message) {
-    JOptionPane.showMessageDialog(null, message);
-  }
 
   /**
    * A main method that can be used as an entry point for a user.
    */
   public static void main(String[] args) {
-    ReversiModel model = new ReversiHexModel();
-    model.startGame(9);
 
+    ReversiHexModel model = new ReversiHexModel();
+    model.startGame(7);
     ReversiGUI viewPlayer1 = new ReversiGUI(model);
     ReversiGUI viewPlayer2 = new ReversiGUI(model);
-
-    Player player1 = new Player(PlayerTurn.PLAYER1, model);
-    Player player2 = new Player(PlayerTurn.PLAYER2, model);
-
-    ReversiController controller1 = new ReversiController(player1, model, viewPlayer1);
-    ReversiController controller2 = new ReversiController(player2, model, viewPlayer2);
-
-    controller1.addListener(controller2);
-    controller2.addListener(controller1);
-
-    Thread controller1Thread = new Thread(controller1::go);
-    Thread controller2Thread = new Thread(controller2::go);
-
-    controller1Thread.start();
-    controller2Thread.start();
+    Player player1 = new Player(PlayerTurn.PLAYER1);
+    Player player2 = new Player(PlayerTurn.PLAYER2);
+    ReversiController controller1 = new ReversiController(model, viewPlayer1, player1);
+    ReversiController controller2 = new ReversiController(model,viewPlayer2, player2);
   }
-
 }
