@@ -8,10 +8,11 @@ import player.PlayerTurn;
 import view.ReversiGUI;
 import view.ReversiView;
 
-interface ControllerListener {
-    void handleEvent();
-}
-public class ReversiController {
+import java.util.ArrayList;
+import java.util.List;
+
+
+public class ReversiController implements ControllerListener {
 
     private final ReversiHexModel reversiModel;
     private final ReversiGUI reversiView;
@@ -20,6 +21,7 @@ public class ReversiController {
 
     private ModelListener modelListener;
     private PlayerListener playerListener;
+    private List<ReversiController> controllerListeners = new ArrayList<>();
 
 
     public ReversiController(ReversiHexModel reversiModel, ReversiGUI reversiView, Player player) {
@@ -30,7 +32,6 @@ public class ReversiController {
         this.reversiModel.addListener(this.modelListener);
         this.playerListener = new PlayerListener();
         this.reversiView.addListener(this.playerListener);
-        listen();
     }
 
     public void listen() {
@@ -38,15 +39,14 @@ public class ReversiController {
         PlayerTurn modelsPlayerTurn = this.reversiModel.currentTurn();
         ModelEvent modelEvent = this.modelListener.getMostRecentEvent();
         if (modelEvent.getModelEventType() ==  ModelEventType.PLAYER1TURN) {
+            this.reversiView.showPopup("It Is Now Your Turn: Player 1");
             if (modelsPlayerTurn == PlayerTurn.PLAYER1 && controllersPlayerTurn == PlayerTurn.PLAYER1) {
                 // listen for a PlayerListener move
                 PlayerEvent playerEvent = getNextPlayerAction();
                 if (playerEvent.getExecutingPlayer() == PlayerTurn.PLAYER1) {
                     handlePlayerEvent(playerEvent);
                     this.reversiView.render();
-                    System.out.println("Controller for "
-                            + this.player.getPlayerTurn() + " "
-                            + this.modelListener.getMostRecentEvent().getModelEventType());
+                    this.notifyListeners();
                 }
                 else {
                     // display pane illegal move not your turn
@@ -58,11 +58,15 @@ public class ReversiController {
             }
         }
         else if (modelEvent.getModelEventType() == ModelEventType.PLAYER2TURN) {
+            this.reversiView.showPopup("It Is Now Your Turn Player 2");
             if (modelsPlayerTurn == PlayerTurn.PLAYER2 && controllersPlayerTurn == PlayerTurn.PLAYER2) {
                 // listen for a PlayerListener move
                 PlayerEvent playerEvent = getNextPlayerAction();
-                if (playerEvent.getExecutingPlayer() == PlayerTurn.PLAYER1) {
+                System.out.println(playerEvent.getPlayerEventType());
+                if (playerEvent.getExecutingPlayer() == PlayerTurn.PLAYER2) {
                     handlePlayerEvent(playerEvent);
+                    this.reversiView.render();
+                    this.notifyListeners();
                 }
                 else {
                     this.reversiView.showPopup(modelEvent.getMessage());
@@ -73,15 +77,17 @@ public class ReversiController {
         }
         else if (modelEvent.getModelEventType() == ModelEventType.TIE) {
             // display tie pane to both controllers views
-            this.reversiView.showPopup(modelEvent.getMessage());
+
         } else if (modelEvent.getModelEventType() == ModelEventType.ILLEGALMOVE) {
             // display pane to this controllers view
+
+            this.reversiView.showPopup(modelEvent.getMessage());
         } else if (modelEvent.getModelEventType() == ModelEventType.PLAYER1WON) {
             // display pane to both
-            this.reversiView.showPopup(modelEvent.getMessage());
+
         } else if (modelEvent.getModelEventType() == ModelEventType.PLAYER2WON) {
             // display pane to both
-            this.reversiView.showPopup(modelEvent.getMessage());
+
         }
     }
     private PlayerEvent getNextPlayerAction() {
@@ -101,7 +107,22 @@ public class ReversiController {
             String[] coordinates = playerEvent.getDescription().split(" ");
             this.reversiModel.makeMove(Integer.parseInt(coordinates[0]),
                     Integer.parseInt(coordinates[1]));
-            this.reversiView.showPopup("made a move for " + this.player.getPlayerTurn());
+            this.reversiView.showPopup(this.player.getPlayerTurn() + " Moved to "
+            + Integer.parseInt(coordinates[0]) + " " + Integer.parseInt(coordinates[1]));
         }
+    }
+
+    public void addListener(ReversiController reversiController) {
+        this.controllerListeners.add(reversiController);
+    }
+
+    public void notifyListeners() {
+        for (ReversiController rc: this.controllerListeners) {
+            rc.handleEvent();
+        }
+    }
+    @Override
+    public void handleEvent() {
+        this.reversiView.render();
     }
 }

@@ -306,5 +306,11 @@ public class ReversiGUI extends JFrame implements ReversiView {
     Player player2 = new Player(PlayerTurn.PLAYER2);
     ReversiController controller1 = new ReversiController(model, viewPlayer1, player1);
     ReversiController controller2 = new ReversiController(model,viewPlayer2, player2);
+    controller1.addListener(controller2);
+    controller2.addListener(controller1);
+    while (!model.isGameOver()) {
+      controller1.listen();
+      controller2.listen();
+    }
   }
 }
